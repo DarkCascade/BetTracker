@@ -1,0 +1,70 @@
+@page "/tracker"
+@rendermode InteractiveServer
+@using BetTracker.Helpers
+@using BetTracker.Services
+@using System.Linq
+
+<PageTitle>Degen Bet Trackerino</PageTitle>
+
+<p>Unit Size:
+    $<RadzenTextBox @bind-Value="UnitSize"></RadzenTextBox></p>
+
+<RadzenDataGrid
+    @ref="BetGrid"
+    AllowFiltering="true"
+    FilterPopupRenderMode="PopupRenderMode.OnDemand"
+    AllowPaging="true"
+    PageSize="5"
+    AllowSorting="true" 
+    Data="@BetData" TItem="Bet">
+    <Columns>
+        <RadzenDataGridColumn Width="50px" TItem="Bet" Title="Date" Filterable="false" Sortable="false" TextAlign="TextAlign.Left">
+            <Template Context="data">
+                @data.Date.ToShortDateString()
+            </Template>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn Width="50px" TItem="Bet" Title="BetType" Filterable="false" Sortable="false" TextAlign="TextAlign.Left">
+            <Template Context="data">
+                @data.BetTypeString
+            </Template>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn
+            TItem="Bet"
+            Title="Wager ($)"
+            Width="50px"
+            Filterable="false"
+            Sortable="false">
+            <Template Context="bet">@bet.Wager.Dollars</Template>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn
+            TItem="Bet"
+            Title="Wager (u)"
+            Width="50px"
+            Filterable="false"
+            Sortable="false">
+            <Template Context="bet">@BetHelpers.DollarsToUnits(bet.Wager.Dollars, _unitSize, 2)</Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+<RadzenButton Click="LoadBetData" Text="Load Bet Data"></RadzenButton>
+
+@code {
+    RadzenDataGrid<Bet>? BetGrid;
+    IEnumerable<Bet>? BetData;
+    private BetService _betService = BetService.Instance;
+    private float _unitSize = 1f;
+    string UnitSize
+    {
+        get => _unitSize.ToString();
+        set => _unitSize = float.Parse(value);
+    }
+
+    void LoadBetData()
+    {
+        BetData = _betService.GetBetData();
+    }
+}
